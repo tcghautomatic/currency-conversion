@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Per-machine config: holds the contact email used in the User-Agent.
+src/currency_converter/config.json
+
+# But keep the template in version control.
+!src/currency_converter/config.example.json

@@ -1,0 +1,30 @@
+[project]
+name = "currency-converter"
+version = "0.1.0"
+description = "Currency conversion CLI: exchangerate.fun primary, frankfurter.dev fallback, one-hour cache."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.32",
+]
+
+[project.scripts]
+currency-converter = "currency_converter.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# config.json holds a per-machine contact email; it is gitignored and must
+# never be baked into a distributable artifact.
+[tool.hatch.build.targets.wheel]
+packages = ["src/currency_converter"]
+exclude = ["config.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
