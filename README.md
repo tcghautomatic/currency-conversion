@@ -9,6 +9,17 @@ Convert an amount between currencies.
 - The request `base` follows the target currency: converting to `AUD` uses `base=AUD`,
   converting to `USD` uses `base=USD`.
 
+## Attribution
+
+Exchange rates are provided by these services, and this project is not affiliated
+with or endorsed by them:
+
+- [exchangerate.fun](https://www.exchangerate.fun/) - primary rate source
+- [frankfurter.dev](https://frankfurter.dev/) - fallback rate source, powered by
+  reference data published by the European Central Bank
+
+Please consider supporting both projects if you use them.
+
 ## Configuration
 
 The contact email used in the User-Agent lives in `src/currency_converter/config.json`:
@@ -108,6 +119,7 @@ Override per call with `--cache-dir`, or bypass with `--no-cache`.
   and has no `BTC`, so a `BTC` conversion only works while the primary is healthy.
 - frankfurter.dev publishes per-currency dates, so a fallback result may mix rates
   from adjacent days. `as_of` reports the date for the source currency actually used.
+- See [Attribution](#attribution) for the rate providers.
 
 ## Tests
 
