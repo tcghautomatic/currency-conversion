@@ -76,9 +76,15 @@ Output is JSON on stdout:
   "as_of": "2026-10-25T01:00:08+00:00",
   "provider": "exchangerate.fun",
   "cached": false,
-  "cache_age_seconds": null
+  "cache_age_seconds": null,
+  "cached_at": 1793357478.512837
 }
 ```
+
+`cached_at` is the raw Unix timestamp (epoch seconds) of when the cache file was
+written. It is set whether the rates were served from the cache or freshly fetched and
+cached, so it always points at the on-disk entry that backs the result.
+`cache_age_seconds` is `null` on a fresh fetch, since there was no cached entry to age.
 
 Errors go to stderr as JSON with a non-zero exit code:
 

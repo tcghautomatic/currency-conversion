@@ -37,14 +37,18 @@ def load_table(
     base: str,
     ttl_seconds: float = DEFAULT_TTL_SECONDS,
     now: Optional[float] = None,
-) -> Tuple[Optional[RateTable], Optional[float]]:
-    """Return `(table, age_seconds)` when a fresh entry exists, else `(None, None)`."""
+) -> Tuple[Optional[RateTable], Optional[float], Optional[float]]:
+    """Return `(table, age_seconds, cached_at)` when a fresh entry exists, else `(None, None, None)`.
+
+    `cached_at` is the epoch timestamp recorded when the entry was written, i.e.
+    when the rates were fetched and the cache file created.
+    """
     current = time.time() if now is None else now
     path = cache_path(cache_dir, base)
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return None, None
+        return None, None, None
     try:
         fetched_at = float(payload["fetched_at"])
         table = RateTable(
@@ -55,11 +59,11 @@ def load_table(
             dates={str(k).upper(): str(v) for k, v in (payload.get("dates") or {}).items()},
         )
     except (KeyError, TypeError, ValueError):
-        return None, None
+        return None, None, None
     age = current - fetched_at
     if age < 0 or age > ttl_seconds:
-        return None, None
-    return table, age
+        return None, None, None
+    return table, age, fetched_at
 
 
 def save_table(cache_dir, table: RateTable, now: Optional[float] = None) -> Path:

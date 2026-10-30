@@ -71,6 +71,30 @@ def test_convert_uses_cached_table_on_second_call(tmp_path):
     assert second["to_amount"] == pytest.approx(284.5, abs=0.05)
 
 
+def test_convert_reports_cached_at_on_fresh_fetch(tmp_path):
+    session = _session(ERF_AUD)
+    result = convert(
+        100, "USD", "AUD", cache_dir=tmp_path, session=session, now=1_800_000_000.0
+    )
+    assert result["cached_at"] == 1_800_000_000.0
+
+
+def test_convert_reports_cached_at_from_cache_file(tmp_path):
+    session = _session(ERF_AUD)
+    convert(100, "USD", "AUD", cache_dir=tmp_path, session=session, now=1_800_000_000.0)
+    result = convert(
+        200,
+        "USD",
+        "AUD",
+        cache_dir=tmp_path,
+        session=session,
+        now=1_800_000_000.0 + 120,
+    )
+    assert result["cached"] is True
+    assert result["cache_age_seconds"] == pytest.approx(120.0, abs=0.01)
+    assert result["cached_at"] == 1_800_000_000.0
+
+
 def test_convert_refetches_when_cache_is_stale(tmp_path):
     session = _session(ERF_AUD)
     convert(100, "USD", "AUD", cache_dir=tmp_path, session=session, now=1_800_000_000.0)

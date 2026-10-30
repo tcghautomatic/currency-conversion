@@ -55,6 +55,9 @@ def test_cli_reports_errors_on_stderr(capsys, tmp_path, monkeypatch):
 def test_cli_reports_missing_contact_email(capsys, tmp_path, monkeypatch):
     from currency_converter import config as config_module
 
+    # Isolate the cache: a fresh on-disk entry would be served without a
+    # request, so the User-Agent (and the config check) would never run.
+    monkeypatch.setenv("CURRENCY_CONVERTER_CACHE_DIR", str(tmp_path))
     path = tmp_path / "config.json"
     path.write_text(json.dumps({"contact_email": None}), encoding="utf-8")
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)

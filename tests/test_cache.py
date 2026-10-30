@@ -28,32 +28,36 @@ def test_cache_path_is_per_base_currency(tmp_path):
 
 def test_save_then_load_roundtrip(tmp_path):
     save_table(tmp_path, _table(), now=NOW)
-    table, age = load_table(tmp_path, "AUD", now=NOW)
+    table, age, cached_at = load_table(tmp_path, "AUD", now=NOW)
     assert table.rates == {"USD": 0.703, "EUR": 0.627454}
     assert table.provider == "exchangerate.fun"
     assert table.as_of == "2026-10-25T01:00:08+00:00"
     assert age == 0.0
+    assert cached_at == NOW
 
 
 def test_load_returns_none_when_expired(tmp_path):
     save_table(tmp_path, _table(), now=NOW)
-    table, age = load_table(tmp_path, "AUD", now=NOW + DEFAULT_TTL_SECONDS + 1)
+    table, age, cached_at = load_table(tmp_path, "AUD", now=NOW + DEFAULT_TTL_SECONDS + 1)
     assert table is None
     assert age is None
+    assert cached_at is None
 
 
 def test_load_returns_none_when_missing(tmp_path):
-    table, age = load_table(tmp_path, "AUD", now=NOW)
+    table, age, cached_at = load_table(tmp_path, "AUD", now=NOW)
     assert table is None
     assert age is None
+    assert cached_at is None
 
 
 def test_load_returns_none_for_corrupt_file(tmp_path):
     path = cache_path(tmp_path, "AUD")
     path.write_text("{not json", encoding="utf-8")
-    table, age = load_table(tmp_path, "AUD", now=NOW)
+    table, age, cached_at = load_table(tmp_path, "AUD", now=NOW)
     assert table is None
     assert age is None
+    assert cached_at is None
 
 
 def test_cache_file_records_fetched_at(tmp_path):

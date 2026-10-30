@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import re
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -34,20 +35,26 @@ def resolve_rate_table(
     use_cache: bool = True,
     session=None,
     now: Optional[float] = None,
-) -> tuple[RateTable, bool, Optional[float]]:
-    """Return `(table, cached, age_seconds)`.
+) -> tuple[RateTable, bool, Optional[float], Optional[float]]:
+    """Return `(table, cached, age_seconds, cached_at)`.
 
     Order of preference: fresh cache entry, then exchangerate.fun, then
     frankfurter.dev. A successful provider fetch refreshes the cache.
+
+    `cached_at` is the raw epoch timestamp of the cache file's write, whether the
+    entry was read from the cache or freshly written.
     """
     directory = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     if use_cache and ttl_seconds > 0:
-        cached_table, age = load_table(directory, base, ttl_seconds=ttl_seconds, now=now)
+        cached_table, age, cached_at = load_table(
+            directory, base, ttl_seconds=ttl_seconds, now=now
+        )
         if cached_table is not None:
-            return cached_table, True, age
+            return cached_table, True, age, cached_at
     table = fetch_rate_table(base, session=session)
-    save_table(directory, table, now=now)
-    return table, False, None
+    current = time.time() if now is None else now
+    save_table(directory, table, now=current)
+    return table, False, None, current
 
 
 def convert(
@@ -77,7 +84,7 @@ def convert(
     target = normalise_currency(to_currency)
     base = target  # per spec: the request base follows the target currency
 
-    table, cached, age = resolve_rate_table(
+    table, cached, age, cached_at = resolve_rate_table(
         base,
         cache_dir=cache_dir,
         ttl_seconds=ttl_seconds,
@@ -114,4 +121,5 @@ def convert(
         "provider": table.provider,
         "cached": cached,
         "cache_age_seconds": round(age, 3) if age is not None else None,
+        "cached_at": cached_at,
     }
